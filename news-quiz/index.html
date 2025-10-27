@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Nebraskan Halloweekend Quiz</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for custom colors and fonts -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dn-red': '#cc0033', // A deep red/crimson
+                        'dn-dark': '#1f2937', // Dark gray/black
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Set background and font */
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        /* Style the custom scrollbar for aesthetic purposes */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cc0033;
+            border-radius: 4px;
+        }
+        /* Custom card focus for accessibility and visual feedback */
+        .option-button:hover, .option-button:focus {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
+            transition: all 0.15s ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-lg bg-white shadow-2xl rounded-xl p-6 md:p-10 border-t-8 border-dn-red">
+        <!-- Content will be rendered here by JavaScript -->
+    </div>
+
+    <script>
+        // --- QUIZ DATA ---
+        // This is the JSON data converted into a JavaScript variable
+        const quizData = [
+          {
+            "id": 1,
+            "type": "multiple_choice",
+            "question": "Which venue is hosting a free show on Halloween for those over 21?",
+            "options": [
+              "Bodega’s Alley",
+              "Pinnacle Bank Arena",
+              "Duffy’s Tavern",
+              "O’Leaver’s Pub"
+            ],
+            "correct_answer": "Duffy’s Tavern"
+          },
+          {
+            "id": 2,
+            "type": "true_false",
+            "question": "The show at Pinnacle Bank Arena on October 31st is only open to attendees 18 years of age and older.",
+            "correct_answer": "False"
+          },
+          {
+            "id": 3,
+            "type": "multiple_choice",
+            "question": "Which of the following bands is performing at both Duffy's Tavern on Oct. 30 and O'Leaver's Pub on Oct. 31?",
+            "options": [
+              "Swaul Pope",
+              "MCM Max",
+              "Infielder",
+              "Joyrager"
+            ],
+            "correct_answer": "Infielder"
+          },
+          {
+            "id": 4,
+            "type": "true_false",
+            "question": "Bodega's Alley will be holding a costume contest and a raffle, with winners announced every 30 minutes, for those over 21.",
+            "correct_answer": "True"
+          },
+          {
+            "id": 5,
+            "type": "multiple_choice",
+            "question": "The Hallow's Eve College Night at Duffy's Tavern on Oct. 30 has a cover charge of $5 for those who are:",
+            "options": [
+              "Over 21",
+              "Under 18",
+              "18+",
+              "College students"
+            ],
+            "correct_answer": "Over 21"
+          },
+          {
+            "id": 6,
+            "type": "true_false",
+            "question": "The bands performing at Bodega's Alley on Oct. 31 include JACK and Jet Set.",
+            "correct_answer": "False"
+          },
+          {
+            "id": 7,
+            "type": "multiple_choice",
+            "question": "What time do doors open for the A Day To Remember and Yellowcard show at Pinnacle Bank Arena?",
+            "options": [
+              "9 p.m.",
+              "5 p.m.",
+              "9:30 p.m.",
+              "10 p.m."
+            ],
+            "correct_answer": "5 p.m."
+          },
+          {
+            "id": 8,
+            "type": "true_false",
+            "question": "The writer's least favorite costumes include pop culture references because they can only go for 'one round.'",
+            "correct_answer": "False"
+          },
+          {
+            "id": 9,
+            "type": "multiple_choice",
+            "question": "Which of the following is *not* a costume the writer suggests as an alternative to the devil and angel costumes?",
+            "options": [
+              "A ghost",
+              "Little Red Riding Hood",
+              "Blair Waldorf",
+              "Something that uses things you already have"
+            ],
+            "correct_answer": "Blair Waldorf"
+          },
+          {
+            "id": 10,
+            "type": "true_false",
+            "question": "The writer considers the “Kiss, Marry, Kill” trio costume a new and creative trend for 2025.",
+            "correct_answer": "False"
+          },
+          {
+            "id": 11,
+            "type": "multiple_choice",
+            "question": "The writer dressed as **Priscilla Presley** for one of their costumes last year from which movie?",
+            "options": [
+              "*Elvis*",
+              "*Priscilla*",
+              "*Love Me Tender*",
+              "*Jailhouse Rock*"
+            ],
+            "correct_answer": "*Priscilla*"
+          },
+          {
+            "id": 12,
+            "type": "true_false",
+            "question": "The writer suggests that guys wearing a jersey as a costume is 'boring and lazy.'",
+            "correct_answer": "True"
+          },
+          {
+            "id": 13,
+            "type": "multiple_choice",
+            "question": "The writer suggests which current trend they think would be fun to see this year?",
+            "options": [
+              "Labubus",
+              "A pilot or flight attendant for “Jet2 Holiday”",
+              "The devil/angel duo",
+              "The 'Kiss, Marry, Kill' trio"
+            ],
+            "correct_answer": "A pilot or flight attendant for “Jet2 Holiday”"
+          },
+          {
+            "id": 14,
+            "type": "true_false",
+            "question": "The writer uses Pinterest and TikTok to help brainstorm unique costume ideas.",
+            "correct_answer": "True"
+          },
+          {
+            "id": 15,
+            "type": "multiple_choice",
+            "question": "What is the name of the exhibition that visitors will tour with flashlights at 'Halloween at the Sheldon'?",
+            "options": [
+              "'The Dark Arts'",
+              "'Building of Tradition'",
+              "'Go Big Red'",
+              "'The Spirit Realm'"
+            ],
+            "correct_answer": "'Go Big Red'"
+          },
+          {
+            "id": 16,
+            "type": "true_false",
+            "question": "Patrons at 'Halloween at the Sheldon' are required to RSVP on the museum's website.",
+            "correct_answer": "False"
+          },
+          {
+            "id": 17,
+            "type": "multiple_choice",
+            "question": "What was the prize for the costume contest winner last year at the Sheldon's Halloween party?",
+            "options": [
+              "A cash prize",
+              "A free cocktail",
+              "A surprise prize",
+              "A membership to the Sheldon"
+            ],
+            "correct_answer": "A membership to the Sheldon"
+          },
+          {
+            "id": 18,
+            "type": "true_false",
+            "question": "The 'Halloween at the Sheldon' event is free for all attendees, regardless of age.",
+            "correct_answer": "False"
+          },
+          {
+            "id": 19,
+            "type": "multiple_choice",
+            "question": "What is one of the 'dark arts' activities fans of the occult can take part in at the event?",
+            "options": [
+              "Communicating with ghosts",
+              "Oracle card readings",
+              "Fortune telling",
+              "A seance"
+            ],
+            "correct_answer": "Oracle card readings"
+          },
+          {
+            "id": 20,
+            "type": "true_false",
+            "question": "Matthew Boyd, the manager of community learning and engagement for the Sheldon, hopes the Halloween party becomes a recurring yearly event.",
+            "correct_answer": "True"
+          }
+        ];
+
+        // --- QUIZ STATE ---
+        let state = {
+            currentQuestions: [], // The 5 randomly selected questions
+            currentQuestionIndex: 0,
+            userAnswers: {}, // { questionId: selectedAnswer, ... }
+            score: 0
+        };
+
+        const appDiv = document.getElementById('app');
+        const NUM_QUESTIONS = 5;
+
+        // --- UTILITY FUNCTIONS ---
+
+        // Function to shuffle an array (Fisher-Yates algorithm)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- CORE QUIZ LOGIC ---
+
+        function startQuiz() {
+            // 1. Reset state
+            state.currentQuestionIndex = 0;
+            state.userAnswers = {};
+            state.score = 0;
+
+            // 2. Select 5 random questions
+            const shuffled = shuffleArray([...quizData]);
+            state.currentQuestions = shuffled.slice(0, NUM_QUESTIONS);
+
+            // 3. Render the first question
+            renderCurrentQuestion();
+        }
+
+        function handleAnswer(selectedAnswer) {
+            const currentQ = state.currentQuestions[state.currentQuestionIndex];
+            
+            // Store the user's answer
+            state.userAnswers[currentQ.id] = selectedAnswer;
+
+            // Move to the next question or show results
+            state.currentQuestionIndex++;
+            
+            if (state.currentQuestionIndex < NUM_QUESTIONS) {
+                renderCurrentQuestion();
+            } else {
+                calculateScore();
+                renderResults();
+            }
+        }
+
+        function calculateScore() {
+            let correctCount = 0;
+            state.currentQuestions.forEach(q => {
+                const userAnswer = state.userAnswers[q.id];
+                if (userAnswer === q.correct_answer) {
+                    correctCount++;
+                }
+            });
+            state.score = correctCount;
+        }
+
+        // --- RENDERING FUNCTIONS ---
+
+        function renderStartScreen() {
+            appDiv.innerHTML = `
+                <h1 class="text-3xl font-bold text-dn-dark mb-4 text-center">Daily Nebraskan News Quiz</h1>
+                <p class="text-gray-600 mb-6 text-center">Test your knowledge on the latest stories about Halloweekend events and costumes!</p>
+                <div class="text-xl font-semibold text-center mb-8 p-4 bg-gray-100 rounded-lg border-l-4 border-dn-red">
+                    You will be presented with ${NUM_QUESTIONS} questions, randomly selected from the latest news.
+                </div>
+                <button onclick="startQuiz()" class="w-full py-3 bg-dn-red text-white font-bold text-lg rounded-lg transition duration-200 hover:bg-dn-dark shadow-md hover:shadow-lg">
+                    Start Quiz
+                </button>
+            `;
+        }
+
+        function renderCurrentQuestion() {
+            const q = state.currentQuestions[state.currentQuestionIndex];
+            const qNum = state.currentQuestionIndex + 1;
+
+            let optionsHtml;
+
+            if (q.type === 'true_false') {
+                // Render True/False buttons
+                optionsHtml = `
+                    <button onclick="handleAnswer('True')" class="option-button w-full sm:w-1/2 p-4 mb-3 bg-white border border-dn-dark rounded-lg text-dn-dark font-semibold text-xl transition duration-150 hover:bg-dn-red hover:text-white">
+                        True
+                    </button>
+                    <button onclick="handleAnswer('False')" class="option-button w-full sm:w-1/2 p-4 mb-3 bg-white border border-dn-dark rounded-lg text-dn-dark font-semibold text-xl transition duration-150 hover:bg-dn-red hover:text-white">
+                        False
+                    </button>
+                `;
+            } else {
+                // Render Multiple Choice buttons
+                optionsHtml = q.options.map(option => `
+                    <button onclick="handleAnswer('${option.replace(/'/g, "\\'")}')" class="option-button w-full p-4 mb-3 bg-white border border-dn-dark rounded-lg text-dn-dark text-left font-medium transition duration-150 hover:bg-dn-red hover:text-white">
+                        ${option}
+                    </button>
+                `).join('');
+            }
+            
+            appDiv.innerHTML = `
+                <h2 class="text-dn-dark font-semibold text-sm mb-2">Question ${qNum} of ${NUM_QUESTIONS}</h2>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                    <div class="bg-dn-red h-2.5 rounded-full" style="width: ${((qNum - 1) / NUM_QUESTIONS) * 100}%"></div>
+                </div>
+
+                <p class="text-2xl font-bold text-dn-dark mb-8">${q.question}</p>
+                
+                <div class="flex flex-col sm:flex-row sm:flex-wrap sm:gap-4 justify-between">
+                    ${optionsHtml}
+                </div>
+            `;
+        }
+
+        function renderResults() {
+            const percentage = Math.round((state.score / NUM_QUESTIONS) * 100);
+            
+            // Determine a message based on the score
+            let resultMessage = '';
+            let emoji = '';
+            let textColor = '';
+
+            if (state.score === NUM_QUESTIONS) {
+                resultMessage = 'Perfect Score! You are a true Daily Nebraskan expert.';
+                emoji = '🎉';
+                textColor = 'text-green-600';
+            } else if (state.score >= Math.ceil(NUM_QUESTIONS * 0.6)) {
+                resultMessage = 'Great Job! You nailed most of the stories.';
+                emoji = '👍';
+                textColor = 'text-blue-600';
+            } else {
+                resultMessage = 'Good effort! Time to catch up on the latest from the DN.';
+                emoji = '🧐';
+                textColor = 'text-dn-red';
+            }
+
+            // Generate detailed review HTML
+            const reviewHtml = state.currentQuestions.map((q, index) => {
+                const userAnswer = state.userAnswers[q.id];
+                const isCorrect = userAnswer === q.correct_answer;
+                const icon = isCorrect ? '✅' : '❌';
+                const bgColor = isCorrect ? 'bg-green-50' : 'bg-red-50';
+                const borderColor = isCorrect ? 'border-green-300' : 'border-red-300';
+
+                return `
+                    <div class="p-4 mb-4 rounded-lg border ${borderColor} ${bgColor}">
+                        <p class="font-bold mb-2">${index + 1}. ${q.question}</p>
+                        <p class="text-sm">Your Answer: <span class="font-semibold">${userAnswer} ${icon}</span></p>
+                        ${!isCorrect ? `<p class="text-sm text-green-700">Correct Answer: <span class="font-semibold">${q.correct_answer}</span></p>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            appDiv.innerHTML = `
+                <h1 class="text-3xl font-bold text-dn-dark mb-6 text-center">Quiz Results</h1>
+                
+                <div class="mb-8 p-6 rounded-lg shadow-lg text-center ${textColor} border-2 border-current">
+                    <p class="text-6xl mb-4">${emoji}</p>
+                    <p class="text-2xl font-bold">${resultMessage}</p>
+                    <p class="text-5xl font-extrabold mt-3">${state.score}/${NUM_QUESTIONS}</p>
+                    <p class="text-lg font-medium mt-1">Score: ${percentage}%</p>
+                </div>
+                
+                <h2 class="text-xl font-bold text-dn-dark mb-4 border-b pb-2">Review Your Answers</h2>
+                <div class="max-h-80 overflow-y-auto pr-2">
+                    ${reviewHtml}
+                </div>
+
+                <button onclick="renderStartScreen()" class="w-full mt-8 py-3 bg-dn-dark text-white font-bold text-lg rounded-lg transition duration-200 hover:bg-dn-red shadow-md hover:shadow-lg">
+                    Take Quiz Again
+                </button>
+            `;
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderStartScreen();
+        });
+    </script>
+</body>
+</html>
