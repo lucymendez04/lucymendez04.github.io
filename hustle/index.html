@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Nebraskan Hustle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for game elements */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        .game-card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 2px solid #E53E3E; /* Husker Red */
+        }
+        .topping-button {
+            transition: all 0.1s;
+            cursor: pointer;
+            @apply p-4 text-3xl rounded-xl shadow-lg hover:scale-[1.05] active:translate-y-1;
+        }
+        .btn-primary {
+            @apply bg-red-600 text-white font-bold py-3 px-6 rounded-xl transition hover:bg-red-700 shadow-md;
+        }
+        .progress-bar-container {
+            height: 30px;
+            @apply bg-gray-200 rounded-full overflow-hidden shadow-inner;
+        }
+        .progress-bar {
+            height: 100%;
+            transition: width 0.1s linear, background-color 0.3s;
+        }
+        .grill-perfect {
+            /* The 'sweet spot' on the grill */
+            position: absolute;
+            left: 35%; /* Start of green zone */
+            width: 30%; /* Width of green zone */
+            height: 100%;
+            background-color: rgba(16, 185, 129, 0.3); /* Tailwind green-500 with opacity */
+        }
+        .grill-zone {
+            position: relative;
+            height: 30px;
+            @apply rounded-full border border-gray-400;
+        }
+        .hotdog-assembly-visual {
+            width: 160px;
+            height: 96px;
+        }
+        .hotdog-sausage-svg {
+            transition: fill 0.5s;
+        }
+        .topping-layer {
+            position: absolute;
+            z-index: 30;
+            pointer-events: none;
+            /* Toppings will be centered and stacked using JS styles */
+        }
+        .fan-figure {
+            font-size: 3rem;
+            transition: transform 0.2s;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div id="game-container" class="w-full max-w-4xl bg-white rounded-2xl game-card p-6 md:p-8">
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-black text-red-700 uppercase tracking-widest border-b-4 border-red-500 pb-2">Daily Nebraskan Hustle</h1>
+            <p class="text-lg text-gray-600 mt-2">Daily Nebraskan Debt: Earn $100 to pay off your story-time sins!</p>
+        </header>
+
+        <div id="status-board" class="flex justify-between items-center bg-gray-800 text-white p-4 rounded-xl mb-6 shadow-xl">
+            <div class="text-center">
+                <span class="block text-2xl font-extrabold text-red-400" id="money-display">$0</span>
+                <span class="text-sm uppercase tracking-wider">Money Earned</span>
+            </div>
+            <div class="text-center">
+                <span class="block text-2xl font-extrabold text-red-400" id="time-display">0:00</span>
+                <span class="text-sm uppercase tracking-wider">Time Left</span>
+            </div>
+            <div class="text-center">
+                <span class="block text-2xl font-extrabold text-red-400" id="score-display">0 / 0</span>
+                <span class="text-sm uppercase tracking-wider">Score (Hits/Misses)</span>
+            </div>
+        </div>
+
+        <!-- Game Area Grid -->
+        <div id="game-main" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- 1. Order Ticket / Customer -->
+            <div class="md:col-span-1 bg-white p-4 rounded-xl shadow-lg border border-red-200 h-full">
+                <h2 class="text-xl font-bold mb-3 text-gray-700 flex items-center">
+                    <span class="mr-2">🧑‍🦱</span> Customer Order
+                </h2>
+                <!-- Customer Visual -->
+                <div id="customer-visual" class="text-center mb-3">
+                    <span id="fan-icon" class="fan-figure">🤷‍♂️</span>
+                </div>
+                
+                <div id="customer-info" class="p-4 bg-red-50 rounded-lg">
+                    <p class="text-2xl mb-2" id="customer-mood">Waiting patiently...</p>
+                    <p class="text-sm text-gray-500">Patience Meter:</p>
+                    <div class="progress-bar-container bg-red-200">
+                        <div id="patience-bar" class="progress-bar bg-green-500" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div id="order-details" class="mt-4 p-4 bg-red-100 rounded-lg border-l-4 border-red-500">
+                    <p class="font-semibold text-lg text-red-800">Hot Dog Order (MUST BE IN THIS ORDER):</p>
+                    <ul id="required-toppings" class="list-none space-y-1 mt-2 text-gray-800 text-sm">
+                        <li>Waiting for a fan...</li>
+                    </ul>
+                </div>
+                <button id="start-order-btn" class="btn-primary w-full mt-4">Start Serving</button>
+            </div>
+
+            <!-- 2. Grill Station -->
+            <div class="md:col-span-2 bg-gray-50 p-6 rounded-xl shadow-lg border border-gray-300">
+                <h2 class="text-xl font-bold mb-4 text-gray-700">🌭 Grill & Assembly Station</h2>
+
+                <!-- Hot Dog Visual Container (New Layered Visual) -->
+                <div class="flex flex-col items-center mb-6 relative">
+                    <div id="hotdog-assembly-visual" class="relative hotdog-assembly-visual flex items-center justify-center">
+                        <!-- Student Worker Placeholder (The Player) -->
+                        <div class="text-4xl absolute -top-12 -left-8 text-red-700 hidden md:block" id="student-worker-icon">👨‍🍳</div>
+
+                        <!-- 1. Bun Base -->
+                        <svg id="hotdog-bun-svg" class="absolute w-full h-full" viewBox="0 0 160 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 50C10 20 50 10 80 10C110 10 150 20 150 50L150 86C150 90 145 94 140 94H20C15 94 10 90 10 86L10 50Z" fill="#FDE047" stroke="#CA8A04" stroke-width="2"/>
+                        </svg>
+
+                        <!-- 2. Sausage (Color dynamically controlled by JS) -->
+                        <svg id="hotdog-sausage-svg" class="absolute w-3/4 h-1/2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" viewBox="0 0 120 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect id="sausage-rect" x="5" y="5" width="110" height="38" rx="19" fill="#B91C1C"/>
+                        </svg>
+
+                        <!-- 3. Topping Layers (Injected here) -->
+                        <div id="hotdog-toppings-container" class="absolute inset-0"></div>
+                    </div>
+                    
+                    <p class="text-sm text-gray-500 mt-2">Current Grill State: <span id="grill-state-text" class="font-mono text-gray-700">Uncooked</span></p>
+                </div>
+
+                <!-- Grill Area -->
+                <div id="grill-station" class="mb-6">
+                    <p class="font-semibold text-gray-700 mb-2">Grilling Progress (Hit the green zone!):</p>
+                    <div class="grill-zone">
+                        <div class="grill-perfect"></div>
+                        <div id="grill-progress-bar" class="progress-bar bg-yellow-500" style="width: 0%;"></div>
+                    </div>
+                    <div class="flex justify-around mt-4">
+                        <button id="start-grill-btn" class="btn-primary" disabled>Start Grill</button>
+                        <button id="remove-grill-btn" class="btn-primary bg-blue-600 hover:bg-blue-700" disabled>Remove Dog</button>
+                    </div>
+                </div>
+
+                <!-- Assembly Area -->
+                <div id="assembly-station" class="mt-8">
+                    <p class="font-semibold text-gray-700 mb-3">Add Toppings (In order!):</p>
+                    <div id="topping-buttons" class="grid grid-cols-4 gap-4">
+                        <div class="topping-button bg-red-400 text-white" data-topping="Ketchup">🍅 Ketchup</div>
+                        <div class="topping-button bg-yellow-400 text-gray-800" data-topping="Mustard">🍯 Mustard</div>
+                        <div class="topping-button bg-green-400 text-gray-800" data-topping="Relish">🥒 Relish</div>
+                        <div class="topping-button bg-white text-gray-800 border border-gray-300" data-topping="Onions">🧅 Onions</div>
+                    </div>
+                    <button id="serve-btn" class="btn-primary bg-green-600 hover:bg-green-700 w-full mt-6" disabled>Serve Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instruction Modal (NEW) -->
+    <div id="instruction-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-lg w-full border-4 border-red-500 relative">
+            <!-- X Button Added Here -->
+            <button id="close-x-btn" class="absolute top-2 right-2 text-gray-500 hover:text-red-600 p-2 text-3xl font-light leading-none transition duration-150">
+                &times;
+            </button>
+            <h3 class="text-3xl font-black mb-4 text-red-700 uppercase tracking-wide">How to Hustle</h3>
+            <p class="text-lg text-gray-700 mb-6">Your goal is to earn **$100** in 2 minutes to pay off your Daily Nebraskan debt! Speed and accuracy are key to pleasing the impatient Husker fans.</p>
+
+            <div class="space-y-4 text-left">
+                <div class="flex items-start">
+                    <span class="text-2xl mr-3">1️⃣</span>
+                    <div>
+                        <p class="font-bold text-red-600">Take Order & Manage Patience</p>
+                        <p class="text-sm text-gray-600">Click **"Start Serving"**. Watch the **Patience Meter**—if it runs out, the customer leaves and you lose money!</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start">
+                    <span class="text-2xl mr-3">2️⃣</span>
+                    <div>
+                        <p class="font-bold text-red-600">Grill It Right</p>
+                        <p class="text-sm text-gray-600">Click **"Start Grill"** and then immediately click **"Remove Dog"** when the progress bar is in the **GREEN ZONE** (the sweet spot) for a perfect cook!</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start">
+                    <span class="text-2xl mr-3">3️⃣</span>
+                    <div>
+                        <p class="font-bold text-red-600">Assemble Accurately</p>
+                        <p class="text-sm text-gray-600">Add the toppings in the **EXACT ORDER** listed on the ticket. Get it right, then **"Serve Order"** to get paid!</p>
+                    </div>
+                </div>
+            </div>
+
+            <button id="close-instructions-btn" class="btn-primary w-full mt-8">Got It, Start Cooking! 🌽</button>
+        </div>
+    </div>
+
+    <!-- Modal for Game Over/Win (Existing) -->
+    <div id="game-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-sm w-full">
+            <h3 id="modal-title" class="text-3xl font-black mb-4 text-red-700">Game Over</h3>
+            <p id="modal-message" class="text-lg mb-6">You ran out of time! The fans are going home hungry and angry. Your debt remains unpaid.</p>
+            <button id="restart-btn" class="btn-primary">Play Again</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase variables (provided by environment)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // Game State Variables
+        let money = 0;
+        let hits = 0;
+        let misses = 0;
+        let currentOrder = null;
+        let assembledToppings = [];
+        let grillTime = 0; // 0 to 100
+        let grillInterval = null;
+        let gameTime = 120; // 120 seconds (2 minutes)
+        let gameInterval = null;
+        let isOrderActive = false;
+        let db, auth, userId = null;
+        let isAuthReady = false;
+
+        // Configuration
+        const MAX_TIME = 120; // 2 minutes in seconds
+        const MAX_MONEY = 100; // Goal
+        const TOPPINGS = ['Ketchup', 'Mustard', 'Relish', 'Onions'];
+        const GRILL_PERFECT_START = 35; // %
+        const GRILL_PERFECT_END = 65; // %
+        const GRILL_SPEED = 2; // % progress per interval
+
+        // DOM Elements
+        const D = (id) => document.getElementById(id);
+        const moneyDisplay = D('money-display');
+        const timeDisplay = D('time-display');
+        const scoreDisplay = D('score-display');
+        const requiredToppingsList = D('required-toppings');
+        const fanIcon = D('fan-icon');
+        const sausageRect = D('sausage-rect');
+        const hotdogToppingsContainer = D('hotdog-toppings-container');
+        const grillStateText = D('grill-state-text');
+        const patienceBar = D('patience-bar');
+        const customerMood = D('customer-mood');
+        const grillProgressBar = D('grill-progress-bar');
+        const startGrillBtn = D('start-grill-btn');
+        const removeGrillBtn = D('remove-grill-btn');
+        const startOrderBtn = D('start-order-btn');
+        const serveBtn = D('serve-btn');
+        const toppingButtons = D('topping-buttons');
+        const gameModal = D('game-modal');
+        const modalTitle = D('modal-title');
+        const modalMessage = D('modal-message');
+        const restartBtn = D('restart-btn');
+        // Instruction modal elements
+        const instructionModal = D('instruction-modal');
+        const closeInstructionsBtn = D('close-instructions-btn');
+        const closeXBtn = D('close-x-btn'); // Added reference for the new X button
+
+        // --- Firebase Setup and Authentication ---
+        async function initializeFirebase() {
+            try {
+                if (Object.keys(firebaseConfig).length === 0) {
+                    console.warn("Firebase config is missing. Using local state only.");
+                    isAuthReady = true; // Proceed with game logic
+                    return;
+                }
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('debug');
+
+                if (initialAuthToken) {
+                    const userCredential = await signInWithCustomToken(auth, initialAuthToken);
+                    userId = userCredential.user.uid;
+                } else {
+                    const userCredential = await signInAnonymously(auth);
+                    userId = userCredential.user.uid;
+                }
+                isAuthReady = true;
+                console.log("Firebase authenticated. User ID:", userId);
+                await loadHighScore();
+
+            } catch (error) {
+                console.error("Firebase Initialization/Authentication Failed:", error);
+                isAuthReady = true; // Allow game to run locally even if Firebase fails
+            }
+        }
+
+        async function saveHighScore() {
+            if (!db || !userId) return;
+            try {
+                // Private data path: /artifacts/{appId}/users/{userId}/game_data/{docId}
+                const docRef = doc(db, `artifacts/${appId}/users/${userId}/game_data`, 'hotdog_hustle_score');
+                await setDoc(docRef, {
+                    highScore: money,
+                    lastPlayed: new Date(),
+                    hits: hits,
+                    misses: misses
+                }, { merge: true });
+                console.log("High score saved successfully.");
+            } catch (error) {
+                console.error("Error saving high score:", error);
+            }
+        }
+
+        async function loadHighScore() {
+            if (!db || !userId) return;
+            try {
+                const docRef = doc(db, `artifacts/${appId}/users/${userId}/game_data`, 'hotdog_hustle_score');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    // Display high score, but don't set current money
+                    console.log(`Loaded High Score: $${data.highScore}`);
+                    // Optionally display high score in UI
+                }
+            } catch (error) {
+                console.error("Error loading high score:", error);
+            }
+        }
+
+        // Helper function for topping visuals (using simple colored divs)
+        function getToppingVisual(topping) {
+            let color, height, width, zIndex;
+            const toppingIndex = assembledToppings.length; // Current index for stacking
+
+            switch (topping) {
+                case 'Ketchup':
+                    color = '#DC2626'; // Red
+                    height = '4px';
+                    width = '80%';
+                    break;
+                case 'Mustard':
+                    color = '#FACC15'; // Yellow
+                    height = '4px';
+                    width = '70%';
+                    break;
+                case 'Relish':
+                    color = '#10B981'; // Green
+                    height = '8px';
+                    width = '90%';
+                    break;
+                case 'Onions':
+                    color = 'white';
+                    height = '8px';
+                    width = '60%';
+                    break;
+                default:
+                    return '';
+            }
+            // Stacking toppings slightly higher based on index
+            const yOffset = toppingIndex * 4; 
+            return `<div class="topping-layer rounded-full" style="background-color: ${color}; height: ${height}; width: ${width}; top: 50%; transform: translate(-50%, calc(-50% - ${yOffset}px)); z-index: ${30 + toppingIndex}; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></div>`;
+        }
+
+        // --- Game Logic ---
+
+        function generateOrder() {
+            const numToppings = Math.floor(Math.random() * 3) + 1; // 1 to 3 toppings
+            const shuffledToppings = TOPPINGS.sort(() => 0.5 - Math.random());
+            const requiredToppings = shuffledToppings.slice(0, numToppings);
+            const isDrunkFan = Math.random() < 0.15; // 15% chance of being a "drunk" or impatient fan
+            const patience = isDrunkFan ? 60 : 100; // Lower patience for mad/drunk fans
+
+            return {
+                requiredToppings: requiredToppings,
+                isDrunkFan: isDrunkFan,
+                patience: patience,
+                maxPatience: patience,
+                patiencePenalty: isDrunkFan ? 1 : 0.5, // Faster drain for drunk fans
+                patienceInterval: null,
+                grillPrecision: 0 // Will be set after grilling
+            };
+        }
+
+        function startPatienceTimer() {
+            clearInterval(currentOrder.patienceInterval);
+            currentOrder.patienceInterval = setInterval(() => {
+                if (isOrderActive) {
+                    currentOrder.patience -= currentOrder.patiencePenalty;
+                    updatePatienceBar();
+
+                    if (currentOrder.patience <= 0) {
+                        handleOrderMiss("Patience ran out! A mad fan stormed off.");
+                    }
+                }
+            }, 1000);
+        }
+
+        function updatePatienceBar() {
+            const percent = (currentOrder.patience / currentOrder.maxPatience) * 100;
+            patienceBar.style.width = `${Math.max(0, percent)}%`;
+
+            let moodText = "Waiting patiently...";
+            let moodColor = "bg-green-500";
+            if (percent < 50 && percent >= 20) {
+                moodText = "Getting impatient! 😠";
+                moodColor = "bg-yellow-500";
+                fanIcon.textContent = currentOrder.isDrunkFan ? '🤬' : '🤨';
+            } else if (percent < 20) {
+                moodText = "MAD FAN ALERT! 😡";
+                moodColor = "bg-red-500";
+                fanIcon.textContent = currentOrder.isDrunkFan ? '🥊' : '😡'; // Fighting or mad
+            } else {
+                fanIcon.textContent = currentOrder.isDrunkFan ? '😠' : '🏈'; // Default Husker Fan or mildly impatient
+            }
+
+            patienceBar.className = `progress-bar ${moodColor}`;
+            customerMood.textContent = currentOrder.isDrunkFan ? `(DRUNK FAN) ${moodText}` : moodText;
+        }
+
+        function newOrder() {
+            if (money >= MAX_MONEY) {
+                endGame(true);
+                return;
+            }
+
+            // Reset order state
+            currentOrder = generateOrder();
+            assembledToppings = [];
+            currentOrder.grillPrecision = 0;
+            isOrderActive = true;
+            
+            // Reset visuals
+            sausageRect.setAttribute('fill', '#B91C1C'); // Raw color
+            hotdogToppingsContainer.innerHTML = ''; // Clear toppings
+            grillStateText.textContent = 'Uncooked';
+            
+            startGrillBtn.disabled = false;
+            removeGrillBtn.disabled = true;
+            serveBtn.disabled = true;
+
+            // Display order
+            let orderHTML = '';
+            currentOrder.requiredToppings.forEach((topping, index) => {
+                orderHTML += `<li class="flex items-center"><span class="text-xl mr-2">${index + 1}. ${getEmoji(topping)}</span> ${topping}</li>`;
+            });
+            requiredToppingsList.innerHTML = orderHTML;
+
+            // Start time-based challenge and set initial fan state
+            startPatienceTimer();
+            startOrderBtn.disabled = true;
+            fanIcon.textContent = currentOrder.isDrunkFan ? '😠' : '🏈';
+        }
+
+        function startGrill() {
+            if (grillInterval || !isOrderActive) return;
+
+            grillTime = 0;
+            grillProgressBar.style.width = '0%';
+            grillProgressBar.className = 'progress-bar bg-yellow-500';
+            grillStateText.textContent = 'Grilling...';
+            startGrillBtn.disabled = true;
+            removeGrillBtn.disabled = false;
+
+            grillInterval = setInterval(() => {
+                grillTime += GRILL_SPEED;
+                grillProgressBar.style.width = `${grillTime}%`;
+
+                // Update color based on zone
+                if (grillTime >= GRILL_PERFECT_START && grillTime <= GRILL_PERFECT_END) {
+                    grillProgressBar.className = 'progress-bar bg-green-500'; // Perfect
+                } else if (grillTime > GRILL_PERFECT_END) {
+                    grillProgressBar.className = 'progress-bar bg-red-500'; // Burnt
+                } else {
+                    grillProgressBar.className = 'progress-bar bg-yellow-500'; // Raw
+                }
+
+                if (grillTime >= 100) {
+                    clearInterval(grillInterval);
+                    grillInterval = null;
+                    sausageRect.setAttribute('fill', '#1F2937'); // Dark gray/black (burnt)
+                    removeGrillBtn.disabled = true;
+                    currentOrder.grillPrecision = -50; // Max penalty for burning
+                    handleOrderMiss("The hot dog burned! Start a new order.");
+                }
+            }, 100);
+        }
+
+        function removeGrill() {
+            if (!grillInterval) return;
+
+            clearInterval(grillInterval);
+            grillInterval = null;
+            removeGrillBtn.disabled = true;
+
+            // Calculate Grill Precision
+            let precision = 0;
+            if (grillTime >= GRILL_PERFECT_START && grillTime <= GRILL_PERFECT_END) {
+                precision = 100;
+                sausageRect.setAttribute('fill', '#7C2D12'); // Perfect cooked brown
+                grillStateText.textContent = 'Perfectly Cooked!';
+            } else if (grillTime < GRILL_PERFECT_START) {
+                precision = Math.max(0, (grillTime / GRILL_PERFECT_START) * 50);
+                sausageRect.setAttribute('fill', '#A78BFA'); // Lightly cooked/purpleish (raw)
+                grillStateText.textContent = 'Undercooked!';
+            } else {
+                precision = 100 - (grillTime - GRILL_PERFECT_END) * 2;
+                precision = Math.max(0, precision);
+                sausageRect.setAttribute('fill', '#1F2937'); // Dark gray/black (burnt)
+                grillStateText.textContent = 'Slightly Burnt!';
+            }
+
+            currentOrder.grillPrecision = precision;
+
+            // Move to assembly phase
+            startGrillBtn.disabled = true;
+            serveBtn.disabled = false;
+        }
+
+        function addAssembly(topping) {
+            if (!isOrderActive || grillInterval !== null || currentOrder.grillPrecision === 0) {
+                // Must complete grilling first
+                return;
+            }
+
+            // Check if the topping is required AND in the correct sequence
+            const expectedTopping = currentOrder.requiredToppings[assembledToppings.length];
+
+            if (expectedTopping === topping) {
+                assembledToppings.push(topping);
+                hotdogToppingsContainer.innerHTML += getToppingVisual(topping); // Add visual layer
+            } else {
+                // Wrong topping or wrong sequence is a major error
+                handleOrderMiss("Wrong topping or sequence! Customer is furious.");
+            }
+        }
+
+        function serveOrder() {
+            if (!isOrderActive) return;
+
+            isOrderActive = false;
+            clearInterval(currentOrder.patienceInterval);
+            serveBtn.disabled = true;
+            startGrillBtn.disabled = true;
+            removeGrillBtn.disabled = true;
+
+            // 1. Topping Accuracy Check
+            let toppingAccuracy = 0;
+            const requiredCount = currentOrder.requiredToppings.length;
+            const assembledCount = assembledToppings.length;
+
+            if (assembledCount === requiredCount) {
+                // Check sequence
+                const correctSequence = assembledToppings.every((t, i) => t === currentOrder.requiredToppings[i]);
+                if (correctSequence) {
+                    toppingAccuracy = 100;
+                }
+            }
+            // Penalty for missing or adding extra/wrong sequence
+            if (toppingAccuracy < 100) {
+                toppingAccuracy = 0;
+                console.log("Topping sequence error.");
+            }
+
+            // 2. Final Score Calculation
+            const totalScore = (currentOrder.grillPrecision * 0.5) + (toppingAccuracy * 0.5); // 50% grill, 50% toppings
+
+            let earnedAmount = Math.round(totalScore / 100 * 5) + 2; // Min $2, Max $7
+            let message = '';
+
+            if (totalScore >= 95) {
+                hits++;
+                message = `PERFECT! They left a $${earnedAmount} tip. Go Big Red! 🥳`;
+                customerMood.textContent = 'Extremely happy! 😊';
+                fanIcon.textContent = '🤩'; // Happy
+            } else if (totalScore >= 70) {
+                hits++;
+                message = `Good job! You earned $${earnedAmount}. They'll be back. 👍`;
+                customerMood.textContent = 'Satisfied. 🙂';
+                fanIcon.textContent = '😊'; // Satisfied
+            } else if (totalScore > 0) {
+                misses++;
+                message = `Eh, it was okay. You earned $${earnedAmount} but they looked angry. 😒`;
+                customerMood.textContent = 'Disappointed. 😞';
+                fanIcon.textContent = '😒'; // Disappointed
+            } else {
+                misses++;
+                earnedAmount = 0;
+                message = 'FAILURE! The fan tossed the hot dog at you. -$5 penalty. 🤬';
+                money = Math.max(0, money - 5);
+                customerMood.textContent = 'Infuriated! 😡';
+                fanIcon.textContent = '🗑️'; // Threw dog
+            }
+
+            money += earnedAmount;
+            updateDisplay();
+
+            // Notify and reset
+            console.log(message);
+            setTimeout(() => {
+                newOrder();
+            }, 3000);
+        }
+
+        function handleOrderMiss(reason) {
+            misses++;
+            isOrderActive = false;
+            clearInterval(currentOrder.patienceInterval);
+            clearInterval(grillInterval);
+            grillInterval = null;
+            startGrillBtn.disabled = true;
+            removeGrillBtn.disabled = true;
+            serveBtn.disabled = true;
+            startOrderBtn.disabled = false;
+
+            money = Math.max(0, money - 3); // Small penalty for failure
+            updateDisplay();
+
+            sausageRect.setAttribute('fill', '#6B7280'); // Gray for rejected dog
+            hotdogToppingsContainer.innerHTML = '';
+            requiredToppingsList.innerHTML = `<li class="text-red-500 font-bold">${reason}</li>`;
+            customerMood.textContent = 'Fan has left the stadium. 💨';
+            fanIcon.textContent = '🏃‍♂️'; // Fan runs away
+            grillStateText.textContent = 'Rejected!';
+        }
+
+        function getEmoji(topping) {
+            switch (topping) {
+                case 'Ketchup': return '🍅';
+                case 'Mustard': return '🍯';
+                case 'Relish': return '🥒';
+                case 'Onions': return '🧅';
+                default: return '';
+            }
+        }
+
+        // --- Game Loop and Display ---
+
+        function updateDisplay() {
+            moneyDisplay.textContent = `$${money}`;
+            scoreDisplay.textContent = `${hits} / ${misses}`;
+
+            // Format time as M:SS
+            const minutes = Math.floor(gameTime / 60);
+            const seconds = gameTime % 60;
+            timeDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+            if (money >= MAX_MONEY) {
+                endGame(true);
+            }
+        }
+
+        function gameTick() {
+            if (gameTime <= 0) {
+                endGame(false);
+                return;
+            }
+
+            gameTime--;
+            updateDisplay();
+        }
+
+        function startGame() {
+            // Reset game state
+            money = 0;
+            hits = 0;
+            misses = 0;
+            gameTime = MAX_TIME;
+            isOrderActive = false;
+            currentOrder = null;
+            clearInterval(gameInterval);
+            clearInterval(grillInterval);
+            if (currentOrder && currentOrder.patienceInterval) {
+                clearInterval(currentOrder.patienceInterval);
+            }
+            gameModal.classList.add('hidden');
+            
+            // Start main game clock
+            gameInterval = setInterval(gameTick, 1000);
+            updateDisplay();
+
+            // Initialize first order
+            startOrderBtn.disabled = false;
+            startOrderBtn.textContent = 'Take Next Order';
+            requiredToppingsList.innerHTML = `<li>Ready for the next rush of fans!</li>`;
+            customerMood.textContent = 'A new fan approaches...';
+            sausageRect.setAttribute('fill', '#B91C1C');
+            hotdogToppingsContainer.innerHTML = '';
+            grillProgressBar.style.width = '0%';
+            fanIcon.textContent = '🤷‍♂️';
+            grillStateText.textContent = 'Ready';
+        }
+
+        function endGame(won) {
+            clearInterval(gameInterval);
+            clearInterval(grillInterval);
+            if (currentOrder && currentOrder.patienceInterval) {
+                clearInterval(currentOrder.patienceInterval);
+            }
+            isOrderActive = false;
+            saveHighScore();
+
+            if (won) {
+                modalTitle.textContent = "VICTORY! 🥳";
+                modalMessage.innerHTML = `You paid off your debt and can finally focus on writing great stories! Final Money: <span class="text-green-600 font-bold">$${money}</span>.`;
+                restartBtn.textContent = "Play Again";
+            } else {
+                modalTitle.textContent = "GAME OVER";
+                modalMessage.innerHTML = `Time ran out! You only earned <span class="text-red-600 font-bold">$${money}</span>. The debt remains!`;
+                restartBtn.textContent = "Try Again";
+            }
+
+            gameModal.classList.remove('hidden');
+        }
+
+        // --- Event Listeners and Initialization ---
+
+        function setupEventListeners() {
+            startOrderBtn.addEventListener('click', newOrder);
+            startGrillBtn.addEventListener('click', startGrill);
+            removeGrillBtn.addEventListener('click', removeGrill);
+            serveBtn.addEventListener('click', serveOrder);
+            restartBtn.addEventListener('click', startGame);
+
+            toppingButtons.querySelectorAll('.topping-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const topping = button.getAttribute('data-topping');
+                    addAssembly(topping);
+                });
+            });
+
+            const closeModalAndStart = () => {
+                instructionModal.classList.add('hidden');
+                startGame();
+            };
+
+            // Listener for the main "Got It" button
+            closeInstructionsBtn.addEventListener('click', closeModalAndStart);
+            
+            // Listener for the new "X" button
+            closeXBtn.addEventListener('click', closeModalAndStart);
+        }
+
+        // Initial setup on window load
+        window.onload = async () => {
+            setupEventListeners();
+            await initializeFirebase();
+            // The game starts when the instructions are closed.
+        };
+
+    </script>
+</body>
+</html>
