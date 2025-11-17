@@ -1,0 +1,168 @@
+<index.html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNL Temple Building Transformation</title>
+    
+    <style>
+        :root {
+            /* CSS Variable to control the position of the slider/top image width */
+            --slider-position: 50%;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.5em; /* Responsive font size */
+        }
+
+        p.instructions {
+            text-align: center;
+            color: #555;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .comparison-container {
+            position: relative;
+            max-width: 800px; /* Max width for large screens */
+            width: 100%;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            /* This ensures the container height matches the image height */
+            aspect-ratio: 1000 / 682; /* Adjust this to your image's aspect ratio (width/height) for best alignment */
+        }
+
+        .image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures images cover the container while maintaining aspect ratio */
+            position: absolute;
+            top: 0;
+            left: 0;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .image-after {
+            clip-path: inset(0 0 0 var(--slider-position));
+            /* A transition on clip-path makes the reveal smoother */
+            transition: clip-path 0.05s linear;
+        }
+
+        .slider {
+            position: absolute;
+            top: 0;
+            left: calc(var(--slider-position) - 15px); /* Center the handle based on the position */
+            width: 30px;
+            height: 100%;
+            background: transparent;
+            -webkit-appearance: none; /* Hide default slider styling */
+            appearance: none;
+            z-index: 10;
+            cursor: ew-resize;
+            margin: 0;
+            padding: 0;
+            opacity: 0; /* Hide the track visually */
+        }
+
+        /* Styling for the draggable line/handle */
+        .slider-handle {
+            position: absolute;
+            left: var(--slider-position);
+            transform: translateX(-50%); /* Center the handle visually */
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: white;
+            z-index: 5;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none; /* Allow mouse events to pass through to the hidden slider */
+        }
+
+        .handle-icon {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            color: #333;
+            font-size: 20px;
+            text-align: center;
+            line-height: 40px;
+            border: 2px solid #333;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Media query for smaller screens/mobile */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.2em;
+            }
+            body {
+                padding: 10px;
+            }
+            .comparison-container {
+                border-radius: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Check out the changes to UNL's Temple Building from between 1920-1930 to 2025</h1>
+    <p class="instructions">Drag the white vertical line left and right to compare the historical (Before) and modern (After) photos.</p>
+
+    <div class="comparison-container">
+        <img class="image image-before" src="58.jpg" alt="Historical photo of UNL's Temple Building, circa 1920-1930s">
+        
+        <img class="image image-after" src="IMG_9071.jpg" alt="Modern photo of UNL's Temple Building, 2025">
+
+        <div class="slider-handle">
+            <div class="handle-icon">&#x21d4;</div>
+        </div>
+
+        <input type="range" min="0" max="100" value="50" class="slider" aria-label="Image comparison slider">
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slider = document.querySelector('.slider');
+            const container = document.querySelector('.comparison-container');
+
+            // Function to update the CSS variable for the slider position
+            function updateSlider(event) {
+                // Get the value (0 to 100) from the range input
+                const sliderValue = slider.value;
+                
+                // Update the CSS variable, which controls the clip-path of the after image 
+                // and the position of the handle
+                container.style.setProperty('--slider-position', `${sliderValue}%`);
+            }
+
+            // Event listener for the range input's 'input' event (fires when the value changes)
+            slider.addEventListener('input', updateSlider);
+
+            // Set initial position on load (in case 'value="50"' doesn't immediately set the style)
+            updateSlider();
+        });
+    </script>
+
+</body>
+</html>

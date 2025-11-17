@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNL Campus Changes: 2014 vs 2025</title>
+    <style>
+        /* --- CSS Styling --- */
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #slider-container {
+            width: 100%;
+            max-width: 900px; /* Adjust max width as needed */
+            margin: 20px 0;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: #4a4a4a;
+            text-align: center;
+            padding: 15px 0 0;
+            font-size: 1.5em;
+        }
+
+        .instructions {
+            text-align: center;
+            color: #666;
+            margin: 10px 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        /* The core slider element */
+        .img-comp-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden; /* Crucial for hiding parts of the 'after' image */
+        }
+
+        .img-comp-img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        /* The 'overlay' image (the "after" image) */
+        .img-comp-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%; /* Initial split point */
+            overflow: hidden;
+            user-select: none; /* Prevent text selection on drag */
+            pointer-events: none; /* Ensures the handle is the only draggable part */
+        }
+
+        /* The "2025" label on the 'after' image */
+        .img-comp-overlay::after {
+            content: "2025";
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 5px 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        /* The "2014" label on the 'before' image (the base image) */
+        .img-comp-img:first-child::after {
+            content: "2014";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        /* The draggable divider/handle */
+        .img-comp-slider {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 40px; /* Width of the handle */
+            height: 100%;
+            cursor: ew-resize; /* East-West resize cursor */
+            opacity: 0.8;
+            pointer-events: auto; /* Allow dragging */
+            transform: translateX(-50%); /* Center the handle */
+        }
+
+        /* The visual line and circle on the handle */
+        .img-comp-slider:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            height: 100%;
+            width: 2px;
+            background-color: white;
+            transform: translateX(-50%);
+        }
+
+        .img-comp-slider:after {
+            content: "↔";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            color: black;
+            border-radius: 50%;
+            border: 4px solid white;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="slider-container">
+        <h1>Check out the changes to UNL's School of Music from 2014-2025</h1>
+        <p class="instructions">
+            **Instructions:** **Click/Tap and drag** the vertical line (↔) to see the difference between the 2014 and 2025 aerial views.
+        </p>
+
+        <div class="img-comp-container">
+            <img src="URL_OF_2014_IMAGE" class="img-comp-img" alt="UNL Campus 2014 Aerial">
+            
+            <div class="img-comp-overlay">
+                <img src="URL_OF_2025_IMAGE" class="img-comp-img" alt="UNL Campus 2025 Aerial">
+            </div>
+
+            <div class="img-comp-slider"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- JavaScript Functionality ---
+        function initComparisons() {
+            var x, i;
+            // Find all elements with class "img-comp-overlay"
+            x = document.getElementsByClassName("img-comp-overlay");
+            for (i = 0; i < x.length; i++) {
+                // Once for each "img-comp-overlay" element:
+                compareImages(x[i]);
+            }
+
+            function compareImages(img) {
+                var slider, imgCompContainer, clicked = 0, w, h;
+                
+                // Get the container and base image width/height
+                imgCompContainer = img.parentElement;
+                w = imgCompContainer.offsetWidth;
+                h = imgCompContainer.offsetHeight;
+
+                // Set the width of the overlay image based on the container width
+                img.style.width = (w / 2) + "px";
+
+                // Create the slider
+                slider = imgCompContainer.getElementsByClassName("img-comp-slider")[0];
+                slider.style.top = (h / 2) - (slider.offsetHeight / 2) + "px"; // Center vertically
+
+                /* --- MOUSE EVENTS (Desktop) --- */
+                // Execute a function when the mouse is pressed down
+                slider.addEventListener("mousedown", slideReady);
+                // Execute a function when the mouse is released
+                window.addEventListener("mouseup", slideFinish);
+                // Execute a function when the mouse is moved
+                window.addEventListener("mousemove", slideMove);
+
+                /* --- TOUCH EVENTS (Mobile) --- */
+                slider.addEventListener("touchstart", slideReady);
+                window.addEventListener("touchend", slideFinish);
+                window.addEventListener("touchmove", slideMove);
+
+                function slideReady(e) {
+                    // Prevent any other event from firing
+                    e.preventDefault();
+                    // The slider is now clicked (or touched) and ready to move
+                    clicked = 1;
+                }
+
+                function slideFinish(e) {
+                    // The slider is no longer clicked
+                    clicked = 0;
+                }
+
+                function slideMove(e) {
+                    var pos;
+                    // If the slider is clicked and ready to move
+                    if (clicked === 0) return false;
+                    
+                    // Get the cursor position
+                    pos = getCursorPos(e);
+
+                    // Prevent the slider from going outside the boundaries
+                    if (pos < 0) pos = 0;
+                    if (pos > w) pos = w;
+
+                    // Execute the slider function
+                    slide(pos);
+                }
+
+                function getCursorPos(e) {
+                    var a, x = 0;
+                    e = (e.changedTouches) ? e.changedTouches[0] : e; // Handle touch events
+
+                    // Get the coordinates of the image comparison container
+                    a = imgCompContainer.getBoundingClientRect();
+                    
+                    // Calculate the cursor's x coordinate relative to the container
+                    x = e.pageX - a.left;
+                    
+                    // Consider any page scrolling
+                    x = x - window.scrollX;
+                    return x;
+                }
+
+                function slide(x) {
+                    // Resize the overlay image width
+                    img.style.width = x + "px";
+                    // Position the slider
+                    slider.style.left = x + "px";
+                }
+            }
+        }
+
+        // Run the function when the page loads
+        document.addEventListener("DOMContentLoaded", initComparisons);
+    </script>
+
+</body>
+</html>
