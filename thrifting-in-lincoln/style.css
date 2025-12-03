@@ -1,0 +1,48 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+#map {
+    height: 100vh;
+    width: 100%;
+}
+
+/* Custom Popup Styles */
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.leaflet-popup-content {
+    margin: 16px;
+    line-height: 1.5;
+}
+
+.store-popup h3 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.store-popup p {
+    margin: 4px 0;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.store-popup .label {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Custom Tooltip Styles */
+.store-tooltip {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
